@@ -83,8 +83,15 @@ public class ProductService {
   }
 
   public void deleteProduct(Long productId) {
-    var product = findById(productId);
-    ProductEntity.deleteById(product.productId);
+    // this should just mark as deleted but lets do the old way
+    ProductRawMaterialEntity.delete("product_id", productId);
+    ProductEntity.deleteById(productId);
+  }
+
+  public void deleteRawMaterial(Long rawMaterialId) {
+    // this should just mark as deleted but lets do the old way
+    ProductRawMaterialEntity.delete("raw_material_id", rawMaterialId);
+    RawMaterialEntity.deleteById(rawMaterialId);
   }
 
   @jakarta.transaction.Transactional

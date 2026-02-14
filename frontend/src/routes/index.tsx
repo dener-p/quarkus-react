@@ -7,7 +7,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import { productsAPI } from "@/lib/api";
+import { api } from "@/lib/api";
 import { createFileRoute } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/")({
@@ -15,7 +15,7 @@ export const Route = createFileRoute("/")({
 });
 
 function HomeComponent() {
-  const { data: suggestions } = productsAPI.getProductionSuggestion();
+  const { data: suggestions } = api.getProductionSuggestion();
 
   return (
     <section className="container mx-auto max-w-6xl px-4 py-8">
@@ -37,7 +37,7 @@ function HomeComponent() {
 }
 
 function AccordionProducts() {
-  const { data } = productsAPI.getProducts();
+  const { data } = api.getProducts();
   if (!data) return null;
 
   return (

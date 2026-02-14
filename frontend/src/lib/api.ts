@@ -167,7 +167,7 @@ const deleteRawMaterial = () =>
     },
   });
 
-export const productsAPI = {
+export const api = {
   getProducts,
   getProduct,
   createProduct,

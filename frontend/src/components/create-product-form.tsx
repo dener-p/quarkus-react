@@ -1,7 +1,7 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { productSchema } from "../lib/schemas";
-import { productsAPI } from "../lib/api";
+import { api } from "../lib/api";
 import { z } from "zod/v3";
 import { Dialog, DialogContent, DialogTrigger } from "./ui/dialog";
 import { Button } from "./ui/button";
@@ -19,7 +19,7 @@ export function CreateProductForm() {
     resolver: zodResolver(productSchema),
   });
 
-  const mutation = productsAPI.createProduct();
+  const mutation = api.createProduct();
 
   const onSubmit = (data: ProductFormValues) => {
     mutation.mutate(data, {

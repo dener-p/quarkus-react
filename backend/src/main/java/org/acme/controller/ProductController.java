@@ -64,4 +64,13 @@ public class ProductController {
     productService.addRawMaterial(productId, dto.rawMaterialId, dto.quantity);
     return Response.ok().build();
   }
+
+  @DELETE
+  @Path("/{id}/raw-materials")
+  @Transactional
+  public Response deleteRawMaterial(@PathParam("id") Long rawMaterialId) {
+    productService.deleteRawMaterial(rawMaterialId);
+    return Response.noContent().build();
+  }
+
 }

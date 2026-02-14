@@ -1,7 +1,7 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { rawMaterialSchema } from "../lib/schemas";
-import { productsAPI } from "../lib/api";
+import { api } from "../lib/api";
 import { z } from "zod/v3";
 import { Dialog, DialogContent, DialogTrigger } from "./ui/dialog";
 import { Button } from "./ui/button";
@@ -19,7 +19,7 @@ export function CreateRawMaterialForm() {
     resolver: zodResolver(rawMaterialSchema),
   });
 
-  const mutation = productsAPI.createRawMaterial();
+  const mutation = api.createRawMaterial();
 
   const onSubmit = (data: RawMaterialFormValues) => {
     mutation.mutate(data, {

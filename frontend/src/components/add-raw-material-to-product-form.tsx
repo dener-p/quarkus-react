@@ -1,8 +1,7 @@
-
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { addRawMaterialToProductSchema } from "../lib/schemas";
-import { productsAPI } from "../lib/api";
+import { api } from "../lib/api";
 import { z } from "zod/v3";
 import { Dialog, DialogContent, DialogTrigger } from "./ui/dialog";
 import { Button } from "./ui/button";
@@ -14,39 +13,52 @@ interface Props {
 }
 
 export function AddRawMaterialToProductForm({ productId }: Props) {
-  const { register, handleSubmit, formState: { errors }, reset } = useForm<AddRawMaterialFormValues>({
-    resolver: zodResolver(addRawMaterialToProductSchema)
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    reset,
+  } = useForm<AddRawMaterialFormValues>({
+    resolver: zodResolver(addRawMaterialToProductSchema),
   });
 
-  const mutation = productsAPI.addRawMaterialToProduct();
-  const { data: rawMaterials } = productsAPI.getRawMaterials();
+  const mutation = api.addRawMaterialToProduct();
+  const { data: rawMaterials } = api.getRawMaterials();
 
   const onSubmit = (data: AddRawMaterialFormValues) => {
-    mutation.mutate({
-      id: String(productId),
-      rawMaterialId: data.rawMaterialId,
-      quantity: data.quantity
-    }, {
-      onSuccess: () => {
-        reset();
-      }
-    });
+    mutation.mutate(
+      {
+        id: String(productId),
+        rawMaterialId: data.rawMaterialId,
+        quantity: data.quantity,
+      },
+      {
+        onSuccess: () => {
+          reset();
+        },
+      },
+    );
   };
 
   return (
-
     <Dialog>
-      <DialogTrigger >
-        <Button variant={"secondary"}>
-          +
-        </Button>
+      <DialogTrigger>
+        <Button variant={"secondary"}>+</Button>
       </DialogTrigger>
       <DialogContent>
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 p-4 border rounded-md mt-4">
+        <form
+          onSubmit={handleSubmit(onSubmit)}
+          className="space-y-4 p-4 border rounded-md mt-4"
+        >
           <h3 className="text-lg font-bold">Add Raw Material</h3>
 
           <div>
-            <label htmlFor="rawMaterialId" className="block text-sm font-medium">Raw Material</label>
+            <label
+              htmlFor="rawMaterialId"
+              className="block text-sm font-medium"
+            >
+              Raw Material
+            </label>
             <select
               id="rawMaterialId"
               {...register("rawMaterialId")}
@@ -59,18 +71,26 @@ export function AddRawMaterialToProductForm({ productId }: Props) {
                 </option>
               ))}
             </select>
-            {errors.rawMaterialId && <p className="text-red-500 text-sm">{errors.rawMaterialId.message}</p>}
+            {errors.rawMaterialId && (
+              <p className="text-red-500 text-sm">
+                {errors.rawMaterialId.message}
+              </p>
+            )}
           </div>
 
           <div>
-            <label htmlFor="quantity" className="block text-sm font-medium">Quantity</label>
+            <label htmlFor="quantity" className="block text-sm font-medium">
+              Quantity
+            </label>
             <input
               id="quantity"
               type="number"
               {...register("quantity")}
               className="mt-1 block w-full rounded-md border p-2"
             />
-            {errors.quantity && <p className="text-red-500 text-sm">{errors.quantity.message}</p>}
+            {errors.quantity && (
+              <p className="text-red-500 text-sm">{errors.quantity.message}</p>
+            )}
           </div>
 
           <button
@@ -81,8 +101,12 @@ export function AddRawMaterialToProductForm({ productId }: Props) {
             {mutation.isPending ? "Adding..." : "Add to Product"}
           </button>
 
-          {mutation.isError && <p className="text-red-500">Error adding raw material</p>}
-          {mutation.isSuccess && <p className="text-green-500">Raw material added successfully!</p>}
+          {mutation.isError && (
+            <p className="text-red-500">Error adding raw material</p>
+          )}
+          {mutation.isSuccess && (
+            <p className="text-green-500">Raw material added successfully!</p>
+          )}
         </form>
       </DialogContent>
     </Dialog>
