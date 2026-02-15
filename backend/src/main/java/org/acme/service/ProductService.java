@@ -5,14 +5,20 @@ import org.acme.dto.ProductMaterialDTO;
 import org.acme.entity.ProductEntity;
 import org.acme.entity.ProductRawMaterialEntity;
 import org.acme.entity.RawMaterialEntity;
-import org.acme.exception.ProductNotFoundException;
+import org.acme.exception.AppException;
+
+import io.quarkus.panache.common.Sort;
 
 import java.util.List;
-
+import jakarta.ws.rs.core.Response;
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 
 @ApplicationScoped
 public class ProductService {
+
+  @Inject
+  RawMaterialService rawMaterialService;
 
   public ProductEntity createProduct(ProductEntity productEntity) {
     ProductEntity.persist(productEntity);
@@ -21,12 +27,12 @@ public class ProductService {
 
   public List<ProductDTO> getProducts() {
 
-    var products = ProductEntity.<ProductEntity>findAll().list();
+    var products = ProductEntity.<ProductEntity>findAll(Sort.by("id")).list();
 
     return products.stream().map(product -> {
 
       ProductDTO dto = new ProductDTO();
-      dto.productId = product.productId;
+      dto.productId = product.id;
       dto.name = product.name;
       dto.code = product.code;
       dto.value = product.value;
@@ -36,6 +42,7 @@ public class ProductService {
             ProductMaterialDTO materialDTO = new ProductMaterialDTO();
             materialDTO.name = raw.rawMaterial.name;
             materialDTO.quantity = raw.quantity;
+            materialDTO.id = raw.id;
             return materialDTO;
           })
           .toList();
@@ -44,30 +51,9 @@ public class ProductService {
     }).toList();
   }
 
-  // public ProductDTO findById(Long productId) {
-  //
-  // ProductEntity product =
-  // ProductEntity.<ProductEntity>findByIdOptional(productId)
-  // .orElseThrow(ProductNotFoundException::new);
-  //
-  // ProductDTO dto = new ProductDTO();
-  // dto.productId = product.productId;
-  // dto.name = product.name;
-  //
-  // dto.rawMaterials = product.rawMaterials.stream()
-  // .map(raw -> {
-  // ProductMaterialDTO materialDTO = new ProductMaterialDTO();
-  // materialDTO.name = raw.rawMaterial.name;
-  // materialDTO.quantity = raw.quantity;
-  // return materialDTO;
-  // })
-  // .toList();
-  //
-  // return dto;
-  // }
   public ProductEntity findById(Long productId) {
     return (ProductEntity) ProductEntity.findByIdOptional(productId)
-        .orElseThrow(ProductNotFoundException::new);
+        .orElseThrow(() -> new AppException("Produto não encontrado.", Response.Status.BAD_REQUEST));
   }
 
   public ProductEntity updateProduct(Long productId, ProductEntity productEntity) {
@@ -83,45 +69,38 @@ public class ProductService {
   }
 
   public void deleteProduct(Long productId) {
-    // this should just mark as deleted but lets do the old way
-    ProductRawMaterialEntity.delete("product_id", productId);
-    ProductEntity.deleteById(productId);
+    var product = findById(productId);
+    // cascate = does not need to delete the ProductRawMaterialEntity...
+    product.delete();
+
   }
 
-  public void deleteRawMaterial(Long rawMaterialId) {
-    // this should just mark as deleted but lets do the old way
-    ProductRawMaterialEntity.delete("raw_material_id", rawMaterialId);
-    RawMaterialEntity.deleteById(rawMaterialId);
+  public void deleteRawMaterialFromProduct(Long id) {
+    var deleted = ProductRawMaterialEntity.deleteById(id);
+    if (!deleted) {
+      throw new AppException("Não foi possível deletar!", Response.Status.BAD_GATEWAY);
+    }
   }
 
-  @jakarta.transaction.Transactional
   public void addRawMaterial(Long productId, Long rawMaterialId, Integer quantity) {
     ProductEntity product = findById(productId);
-    RawMaterialEntity rawMaterial = RawMaterialEntity.findById(rawMaterialId);
+    RawMaterialEntity rawMaterial = rawMaterialService.findById(rawMaterialId);
 
-    if (rawMaterial == null) {
-      // TODO: add expetion
-      throw new RuntimeException("RawMaterial not found");
+    var exists = ProductRawMaterialEntity.find(
+        "product.id = ?1 and rawMaterial.id = ?2",
+        productId,
+        rawMaterialId).firstResultOptional();
+
+    if (exists.isPresent()) {
+      throw new AppException("Materia Prima já existe no produto: '" + product.name + "'", Response.Status.BAD_REQUEST);
     }
 
-    if (product.rawMaterials == null) {
-      product.rawMaterials = new java.util.ArrayList<>();
-    }
-
-    var existingLink = product.rawMaterials.stream()
-        .filter(rm -> rm.rawMaterial.id.equals(rawMaterialId))
-        .findFirst();
-
-    if (existingLink.isPresent()) {
-      existingLink.get().quantity += quantity;
-    } else {
-      ProductRawMaterialEntity link = new ProductRawMaterialEntity();
-      link.product = product;
-      link.rawMaterial = rawMaterial;
-      link.quantity = quantity;
-      product.rawMaterials.add(link);
-      link.persist();
-    }
+    ProductRawMaterialEntity link = new ProductRawMaterialEntity();
+    link.product = product;
+    link.rawMaterial = rawMaterial;
+    link.quantity = quantity;
+    product.rawMaterials.add(link);
+    link.persist();
 
     product.persist();
   }

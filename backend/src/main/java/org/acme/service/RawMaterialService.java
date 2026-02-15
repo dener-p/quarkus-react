@@ -1,40 +1,50 @@
 package org.acme.service;
 
+import org.acme.entity.ProductRawMaterialEntity;
 import org.acme.entity.RawMaterialEntity;
+import org.acme.exception.AppException;
+
+import io.quarkus.panache.common.Sort;
 import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.transaction.Transactional;
+import jakarta.ws.rs.core.Response;
 import java.util.List;
 
 @ApplicationScoped
 public class RawMaterialService {
 
-    public List<RawMaterialEntity> getAll() {
-        return RawMaterialEntity.listAll();
+  public List<RawMaterialEntity> getAll() {
+    return RawMaterialEntity.findAll(Sort.by("id")).list();
+  }
+
+  public RawMaterialEntity findById(Long id) {
+    return (RawMaterialEntity) RawMaterialEntity.findByIdOptional(id)
+        .orElseThrow(() -> new AppException("Matéria-prima não encontrada.", Response.Status.BAD_REQUEST));
+
+  }
+
+  public void create(RawMaterialEntity rawMaterial) {
+    rawMaterial.persist();
+  }
+
+  public RawMaterialEntity update(Long id, RawMaterialEntity rawMaterial) {
+    RawMaterialEntity entity = RawMaterialEntity.findById(id);
+    if (entity == null) {
+      throw new RuntimeException("Matéria-prima não encontrada.");
+    }
+    entity.name = rawMaterial.name;
+    entity.stockQuantity = rawMaterial.stockQuantity;
+    return entity;
+  }
+
+  public void delete(Long id) {
+    var association = ProductRawMaterialEntity.find("rawMaterial.id", id).firstResult();
+
+    if (association != null) {
+      throw new AppException(
+          "Não é possível deletar: A matéria-prima está sendo utilizada em algum produto.",
+          Response.Status.BAD_REQUEST);
     }
 
-    public RawMaterialEntity findById(Long id) {
-        return RawMaterialEntity.findById(id);
-    }
-
-    @Transactional
-    public RawMaterialEntity create(RawMaterialEntity rawMaterial) {
-        rawMaterial.persist();
-        return rawMaterial;
-    }
-
-    @Transactional
-    public RawMaterialEntity update(Long id, RawMaterialEntity rawMaterial) {
-        RawMaterialEntity entity = RawMaterialEntity.findById(id);
-        if (entity == null) {
-            throw new RuntimeException("RawMaterial not found");
-        }
-        entity.name = rawMaterial.name;
-        entity.stockQuantity = rawMaterial.stockQuantity;
-        return entity;
-    }
-
-    @Transactional
-    public void delete(Long id) {
-        RawMaterialEntity.deleteById(id);
-    }
+    RawMaterialEntity.deleteById(id);
+  }
 }

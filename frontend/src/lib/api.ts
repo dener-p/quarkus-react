@@ -1,4 +1,4 @@
-import type { Products, Suggestions } from "@/types/products";
+import type { Products, RawMaterials, Suggestions } from "@/types/apiTypes";
 import { useMutation, useQuery } from "@tanstack/react-query";
 
 const API_LINK = import.meta.env.VITE_SERVER_URL;
@@ -80,13 +80,36 @@ const addRawMaterialToProduct = () =>
       rawMaterialId: number;
       quantity: number;
     }) => {
-      await fetch(API_LINK + `/products/${id}/raw-materials`, {
+      const res = await fetch(API_LINK + `/products/${id}/raw-materials`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({ rawMaterialId, quantity }),
       });
+
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => new Error("Error"));
+        throw new Error(errorData?.msg || "Error Intern");
+      }
+
+      return await res.json();
+    },
+  });
+
+const deleteRawMaterialFromProduct = () =>
+  useMutation({
+    mutationKey: ["delete_raw_material_from_product"],
+    mutationFn: async ({ id }: { id: number }) => {
+      const res = await fetch(API_LINK + `/products/${id}/raw-materials`, {
+        method: "DELETE",
+      });
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => new Error("Error"));
+        throw new Error(errorData?.msg || "Error Intern");
+      }
+
+      return await res.json();
     },
   });
 
@@ -110,7 +133,7 @@ const getRawMaterials = () =>
     queryFn: async () => {
       const data = await fetch(API_LINK + "/raw-materials");
       const json = await data.json();
-      return json;
+      return json as RawMaterials[];
     },
   });
 
@@ -146,7 +169,7 @@ const updateRawMaterial = () =>
     mutationKey: ["update_raw_material"],
     mutationFn: async ({ id, payload }: { id: string; payload: any }) => {
       const data = await fetch(API_LINK + "/raw-materials/" + id, {
-        method: "PUT",
+        method: "PATCH",
         headers: {
           "Content-Type": "application/json",
         },
@@ -161,9 +184,14 @@ const deleteRawMaterial = () =>
   useMutation({
     mutationKey: ["delete_raw_material"],
     mutationFn: async (id: string) => {
-      await fetch(API_LINK + "/raw-materials/" + id, {
+      const res = await fetch(API_LINK + "/raw-materials/" + id, {
         method: "DELETE",
       });
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => new Error("Error"));
+        throw new Error(errorData?.msg || "Error Intern");
+      }
+      return await res.json();
     },
   });
 
@@ -180,4 +208,5 @@ export const api = {
   createRawMaterial,
   updateRawMaterial,
   deleteRawMaterial,
+  deleteRawMaterialFromProduct,
 };

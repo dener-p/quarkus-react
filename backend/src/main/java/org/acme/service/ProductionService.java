@@ -7,6 +7,7 @@ import org.acme.entity.RawMaterialEntity;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -18,50 +19,78 @@ public class ProductionService {
 
   public List<ProductionSuggestionDTO.ProductSuggestionDTO> getProductionSuggestions() {
 
-    // 1. Fetch all products and sort by value (highest first)
     List<ProductEntity> products = ProductEntity.listAll();
-    products.sort(Comparator.comparing((ProductEntity p) -> p.value).reversed());
-
-    // 2. Fetch all raw materials and map their stock
     List<RawMaterialEntity> rawMaterials = RawMaterialEntity.listAll();
-    Map<Long, Integer> availableStock = new HashMap<>();
+
+    Map<Long, Integer> originalStock = new HashMap<>();
     for (RawMaterialEntity rm : rawMaterials) {
-      availableStock.put(rm.id, rm.stockQuantity);
+      originalStock.put(rm.id, rm.stockQuantity);
     }
 
-    List<ProductionSuggestionDTO.ProductSuggestionDTO> suggestions = new ArrayList<>();
+    BigDecimal bestProfit = BigDecimal.ZERO;
+    List<ProductionSuggestionDTO.ProductSuggestionDTO> bestPlan = new ArrayList<>();
 
-    // 3. Calculate max production for each product
-    for (ProductEntity product : products) {
-      if (product.rawMaterials == null || product.rawMaterials.isEmpty()) {
-        continue;
+    // Try each product as first priority
+    for (ProductEntity primary : products) {
+
+      Map<Long, Integer> availableStock = new HashMap<>(originalStock);
+      List<ProductionSuggestionDTO.ProductSuggestionDTO> currentPlan = new ArrayList<>();
+      BigDecimal totalProfit = BigDecimal.ZERO;
+
+      // Produce primary first
+      totalProfit = produceProduct(primary, availableStock, currentPlan, totalProfit);
+
+      // Then produce others
+      for (ProductEntity other : products) {
+        if (other.id.equals(primary.id))
+          continue;
+        totalProfit = produceProduct(other, availableStock, currentPlan, totalProfit);
       }
 
-      int maxProducible = Integer.MAX_VALUE;
-
-      for (ProductRawMaterialEntity prm : product.rawMaterials) {
-        Integer currentStock = availableStock.getOrDefault(prm.rawMaterial.id, 0);
-
-        if (prm.quantity > 0) {
-          int possibleWithThisMaterial = currentStock / prm.quantity;
-          maxProducible = Math.min(maxProducible, possibleWithThisMaterial);
-        }
-      }
-
-      if (maxProducible > 0) {
-
-        BigDecimal totalProductValue = product.value.multiply(BigDecimal.valueOf(maxProducible));
-
-        suggestions.add(new ProductionSuggestionDTO.ProductSuggestionDTO(
-            product.name,
-            maxProducible,
-            totalProductValue));
-
-        // Deduct stock
-
+      if (totalProfit.compareTo(bestProfit) > 0) {
+        bestProfit = totalProfit;
+        bestPlan = currentPlan;
       }
     }
 
-    return suggestions;
+    bestPlan.sort((a, b) -> b.value.compareTo(a.value));
+    return bestPlan;
   }
+
+  private BigDecimal produceProduct(
+      ProductEntity product,
+      Map<Long, Integer> stock,
+      List<ProductionSuggestionDTO.ProductSuggestionDTO> plan,
+      BigDecimal totalProfit) {
+
+    if (product.rawMaterials == null || product.rawMaterials.isEmpty())
+      return totalProfit;
+
+    int maxProducible = Integer.MAX_VALUE;
+
+    for (ProductRawMaterialEntity prm : product.rawMaterials) {
+      int available = stock.getOrDefault(prm.rawMaterial.id, 0);
+      int possible = available / prm.quantity;
+      maxProducible = Math.min(maxProducible, possible);
+    }
+
+    if (maxProducible <= 0)
+      return totalProfit;
+
+    for (ProductRawMaterialEntity prm : product.rawMaterials) {
+      long id = prm.rawMaterial.id;
+      stock.put(id, stock.get(id) - prm.quantity * maxProducible);
+    }
+
+    BigDecimal profit = product.value.multiply(BigDecimal.valueOf(maxProducible));
+    totalProfit = totalProfit.add(profit);
+
+    plan.add(new ProductionSuggestionDTO.ProductSuggestionDTO(
+        product.name,
+        maxProducible,
+        profit));
+
+    return totalProfit;
+  }
+
 }

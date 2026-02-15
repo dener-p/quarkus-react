@@ -4,7 +4,10 @@ import io.quarkus.hibernate.orm.panache.PanacheEntityBase;
 import jakarta.persistence.*;
 
 @Entity
-@Table(name = "product_raw_materials")
+@Table(name = "product_raw_materials", indexes = {
+    @Index(name = "idx_product_id", columnList = "product_id"),
+    @Index(name = "idx_raw_material_id", columnList = "raw_material_id")
+})
 public class ProductRawMaterialEntity extends PanacheEntityBase {
 
   @Id

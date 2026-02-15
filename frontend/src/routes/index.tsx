@@ -1,13 +1,11 @@
-import { AddRawMaterialToProductForm } from "@/components/add-raw-material-to-product-form";
 import { CreateProductForm } from "@/components/create-product-form";
 import { CreateRawMaterialForm } from "@/components/create-raw-material-form";
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
-import { api } from "@/lib/api";
+import { ProductsTable } from "@/components/products-table";
+import { RawMaterialsTable } from "@/components/raw-materials-table";
+import { SuggestionsTable } from "@/components/suggestions-table";
+import { Button } from "@/components/ui/button";
+import { ButtonGroup } from "@/components/ui/button-group";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { createFileRoute } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/")({
@@ -15,52 +13,30 @@ export const Route = createFileRoute("/")({
 });
 
 function HomeComponent() {
-  const { data: suggestions } = api.getProductionSuggestion();
-
   return (
-    <section className="container mx-auto max-w-6xl px-4 py-8">
-      <div className="ml-auto w-fit flex gap-2">
-        <CreateProductForm />
-        <CreateRawMaterialForm />
-      </div>
-      <AccordionProducts />
-      <div className="mt-8">
-        <h3>Suggestions</h3>
-        {suggestions?.map((d) => (
-          <div>
-            {d.productName} {d.quantity} {d.value}
-          </div>
-        ))}
-      </div>
+    <section className="container mx-auto max-w-6xl px-4 py-8 space-y-8">
+      <Tabs defaultValue="products">
+        <div className="flex justify-between">
+          <TabsList>
+            <TabsTrigger value="products">Produtos</TabsTrigger>
+            <TabsTrigger value="raw-material">Matérias-primas</TabsTrigger>
+            <TabsTrigger value="suggestions">Sugestões</TabsTrigger>
+          </TabsList>
+          <ButtonGroup>
+            <CreateProductForm />
+            <CreateRawMaterialForm />
+          </ButtonGroup>
+        </div>
+        <TabsContent value="products">
+          <ProductsTable />
+        </TabsContent>
+        <TabsContent value="raw-material">
+          <RawMaterialsTable />
+        </TabsContent>
+        <TabsContent value="suggestions">
+          <SuggestionsTable />
+        </TabsContent>
+      </Tabs>
     </section>
-  );
-}
-
-function AccordionProducts() {
-  const { data } = api.getProducts();
-  if (!data) return null;
-
-  return (
-    <Accordion>
-      {data.map((product) => (
-        <AccordionItem
-          value={product.productId.toString()}
-          key={product.productId}
-        >
-          <AccordionTrigger className="capitalize text-base">
-            <p>
-              <span className="text-muted-foreground">#{product.code}</span> -{" "}
-              {product.name.toLowerCase()}{" "}
-              <span className="text-green-600">- {product.value}</span>
-            </p>
-          </AccordionTrigger>
-          <AccordionContent>
-            <div className="ml-auto">
-              <AddRawMaterialToProductForm productId={product.productId} />
-            </div>
-          </AccordionContent>
-        </AccordionItem>
-      ))}
-    </Accordion>
   );
 }

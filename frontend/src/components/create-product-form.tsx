@@ -3,9 +3,19 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { productSchema } from "../lib/schemas";
 import { api } from "../lib/api";
 import { z } from "zod/v3";
-import { Dialog, DialogContent, DialogTrigger } from "./ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "./ui/dialog";
 import { Button } from "./ui/button";
-import { Plus, PlusCircle } from "lucide-react";
+import { PlusCircle } from "lucide-react";
+import { useState } from "react";
+import { Label } from "./ui/label";
+import { Input } from "./ui/input";
 
 type ProductFormValues = z.infer<typeof productSchema>;
 
@@ -18,6 +28,7 @@ export function CreateProductForm() {
   } = useForm<ProductFormValues>({
     resolver: zodResolver(productSchema),
   });
+  const [open, setOpen] = useState(false);
 
   const mutation = api.createProduct();
 
@@ -25,80 +36,63 @@ export function CreateProductForm() {
     mutation.mutate(data, {
       onSuccess: () => {
         reset();
+        setOpen(false);
       },
     });
   };
 
   return (
-    <Dialog>
-      <DialogTrigger>
-        <Button>
-          <PlusCircle />
-          Adicionar Produto
-        </Button>
-      </DialogTrigger>
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger
+        render={
+          <Button variant="outline">
+            <PlusCircle />
+            Produto
+          </Button>
+        }
+      ></DialogTrigger>
       <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Create Product</DialogTitle>
+        </DialogHeader>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 ">
-          <h2 className="text-xl font-bold">Create Product</h2>
-
-          <div>
-            <label htmlFor="code" className="block text-sm font-medium">
-              Code
-            </label>
-            <input
-              id="code"
-              {...register("code")}
-              className="mt-1 block w-full rounded-md border p-2"
-            />
+          <div className="flex flex-col gap-1">
+            <Label htmlFor="code">Code</Label>
+            <Input id="code" {...register("code")} />
             {errors.code && (
               <p className="text-red-500 text-sm">{errors.code.message}</p>
             )}
           </div>
-
-          <div>
-            <label htmlFor="name" className="block text-sm font-medium">
-              Name
-            </label>
-            <input
-              id="name"
-              {...register("name")}
-              className="mt-1 block w-full rounded-md border p-2"
-            />
+          <div className="flex flex-col gap-1">
+            <Label htmlFor="name">Name</Label>
+            <Input id="name" {...register("name")} />
             {errors.name && (
               <p className="text-red-500 text-sm">{errors.name.message}</p>
             )}
           </div>
-
-          <div>
-            <label htmlFor="value" className="block text-sm font-medium">
-              Value
-            </label>
-            <input
+          <div className="flex flex-col gap-1">
+            <Label htmlFor="value">Value</Label>
+            <Input
               id="value"
               type="number"
               step="0.01"
               {...register("value")}
-              className="mt-1 block w-full rounded-md border p-2"
             />
             {errors.value && (
               <p className="text-red-500 text-sm">{errors.value.message}</p>
             )}
           </div>
 
-          <button
-            type="submit"
-            disabled={mutation.isPending}
-            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 disabled:opacity-50"
-          >
-            {mutation.isPending ? "Creating..." : "Create Product"}
-          </button>
-
-          {mutation.isError && (
-            <p className="text-red-500">Error creating product</p>
-          )}
-          {mutation.isSuccess && (
-            <p className="text-green-500">Product created successfully!</p>
-          )}
+          <DialogFooter>
+            <Button
+              type="submit"
+              disabled={mutation.isPending}
+              loading={mutation.isPending}
+              className="w-36"
+            >
+              Adicionar Produto
+            </Button>
+          </DialogFooter>
         </form>
       </DialogContent>
     </Dialog>

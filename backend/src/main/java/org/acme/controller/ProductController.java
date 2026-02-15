@@ -1,5 +1,8 @@
 package org.acme.controller;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.acme.dto.AddRawMaterialDTO;
 import org.acme.entity.ProductEntity;
 import org.acme.service.ProductService;
@@ -55,22 +58,30 @@ public class ProductController {
   @Transactional
   public Response deleteProduct(@PathParam("id") Long productId) {
     productService.deleteProduct(productId);
-    return Response.noContent().build();
+    Map<String, String> response = new HashMap<>();
+    response.put("msg", "Produto deletado com sucesso!");
+    return Response.ok(response).build();
+
   }
 
   @POST
   @Path("/{id}/raw-materials")
+  @Transactional
   public Response addRawMaterial(@PathParam("id") Long productId, AddRawMaterialDTO dto) {
     productService.addRawMaterial(productId, dto.rawMaterialId, dto.quantity);
-    return Response.ok().build();
+    Map<String, String> response = new HashMap<>();
+    response.put("msg", "Produto editado com sucesso!");
+    return Response.ok(response).build();
   }
 
   @DELETE
   @Path("/{id}/raw-materials")
   @Transactional
-  public Response deleteRawMaterial(@PathParam("id") Long rawMaterialId) {
-    productService.deleteRawMaterial(rawMaterialId);
-    return Response.noContent().build();
+  public Response deleteRawMaterialFromProduct(@PathParam("id") Long id) {
+    productService.deleteRawMaterialFromProduct(id);
+    Map<String, String> response = new HashMap<>();
+    response.put("msg", "Materia prima removida com sucesso!.");
+    return Response.ok(response).build();
   }
 
 }
