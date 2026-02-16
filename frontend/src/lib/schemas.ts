@@ -45,3 +45,17 @@ export const addRawMaterialToProductSchema = z.object({
       `Quantidade deve ser menor que ${Number.MAX_SAFE_INTEGER}`,
     ),
 });
+
+export const updateRawMaterialProductSchema = z.object({
+  id: z.coerce
+    .number({ message: "Escolha uma matéria-prima válida." })
+    .min(1, "Matéria-prima é obrigatória."),
+  quantity: z.coerce
+    .number({ message: "Deve ser um número." })
+    .int("Número deve ser inteiro.")
+    .min(1, "Quantidade dev ser de pelos 1")
+    .max(
+      Number.MAX_SAFE_INTEGER,
+      `Quantidade deve ser menor que ${Number.MAX_SAFE_INTEGER}`,
+    ),
+});

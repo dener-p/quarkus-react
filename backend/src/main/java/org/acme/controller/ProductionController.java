@@ -17,6 +17,13 @@ public class ProductionController {
   ProductionService productionService;
 
   @GET
+  @Path("/")
+  @Produces(MediaType.APPLICATION_JSON)
+  public List<ProductionSuggestionDTO.ProductSuggestionDTO> getProduction() {
+    return productionService.getProduction();
+  }
+
+  @GET
   @Path("/suggestion")
   @Produces(MediaType.APPLICATION_JSON)
   public List<ProductionSuggestionDTO.ProductSuggestionDTO> getSuggestion() {

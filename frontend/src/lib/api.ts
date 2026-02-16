@@ -96,6 +96,26 @@ const addRawMaterialToProduct = () =>
       return await res.json();
     },
   });
+const updateRawMaterialProduct = () =>
+  useMutation({
+    mutationKey: ["update_raw_material_to_product"],
+    mutationFn: async ({ id, quantity }: { id: string; quantity: number }) => {
+      const res = await fetch(API_LINK + `/products/${id}/raw-materials`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ quantity }),
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => new Error("Error"));
+        throw new Error(errorData?.msg || "Error Intern");
+      }
+
+      return await res.json();
+    },
+  });
 
 const deleteRawMaterialFromProduct = () =>
   useMutation({
@@ -120,6 +140,16 @@ const getProductionSuggestion = () =>
     queryKey: ["get_production_suggestion"],
     queryFn: async () => {
       const data = await fetch(API_LINK + "/production/suggestion");
+      const json = await data.json();
+      return json as Suggestions[];
+    },
+  });
+
+const getProduction = () =>
+  useQuery({
+    queryKey: ["get_production"],
+    queryFn: async () => {
+      const data = await fetch(API_LINK + "/production");
       const json = await data.json();
       return json as Suggestions[];
     },
@@ -209,4 +239,6 @@ export const api = {
   updateRawMaterial,
   deleteRawMaterial,
   deleteRawMaterialFromProduct,
+  updateRawMaterialProduct,
+  getProduction,
 };

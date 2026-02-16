@@ -4,7 +4,9 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.acme.dto.AddRawMaterialDTO;
+import org.acme.dto.ProductionUpdateRawMaterialDTO;
 import org.acme.entity.ProductEntity;
+import org.acme.entity.ProductRawMaterialEntity;
 import org.acme.service.ProductService;
 
 import jakarta.transaction.Transactional;
@@ -81,6 +83,17 @@ public class ProductController {
     productService.deleteRawMaterialFromProduct(id);
     Map<String, String> response = new HashMap<>();
     response.put("msg", "Materia prima removida com sucesso!.");
+    return Response.ok(response).build();
+  }
+
+  @PATCH
+  @Path("/{id}/raw-materials")
+  @Transactional
+  public Response updateRawMaterialFromProduct(@PathParam("id") Long id,
+      ProductionUpdateRawMaterialDTO productionUpdateRawMaterialDTO) {
+    productService.updateRawMaterialFromProduct(id, productionUpdateRawMaterialDTO);
+    Map<String, String> response = new HashMap<>();
+    response.put("msg", "Materia prima atualizada com sucesso!");
     return Response.ok(response).build();
   }
 

@@ -2,6 +2,7 @@ package org.acme.service;
 
 import org.acme.dto.ProductDTO;
 import org.acme.dto.ProductMaterialDTO;
+import org.acme.dto.ProductionUpdateRawMaterialDTO;
 import org.acme.entity.ProductEntity;
 import org.acme.entity.ProductRawMaterialEntity;
 import org.acme.entity.RawMaterialEntity;
@@ -19,6 +20,9 @@ public class ProductService {
 
   @Inject
   RawMaterialService rawMaterialService;
+
+  @Inject
+  ProductionService productionService;
 
   public ProductEntity createProduct(ProductEntity productEntity) {
     ProductEntity.persist(productEntity);
@@ -80,6 +84,12 @@ public class ProductService {
     if (!deleted) {
       throw new AppException("Não foi possível deletar!", Response.Status.BAD_GATEWAY);
     }
+  }
+
+  public void updateRawMaterialFromProduct(Long id, ProductionUpdateRawMaterialDTO productionUpdateRawMaterialDTO) {
+    var productRawMaterialEntity = productionService.findById(id);
+    productRawMaterialEntity.quantity = productionUpdateRawMaterialDTO.quantity;
+    productRawMaterialEntity.persist();
   }
 
   public void addRawMaterial(Long productId, Long rawMaterialId, Integer quantity) {

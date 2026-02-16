@@ -4,18 +4,23 @@ import org.acme.dto.ProductionSuggestionDTO;
 import org.acme.entity.ProductEntity;
 import org.acme.entity.ProductRawMaterialEntity;
 import org.acme.entity.RawMaterialEntity;
+import org.acme.exception.AppException;
 
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.ws.rs.core.Response;
+
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 @ApplicationScoped
 public class ProductionService {
+  public ProductRawMaterialEntity findById(Long id) {
+    return (ProductRawMaterialEntity) ProductRawMaterialEntity.findByIdOptional(id)
+        .orElseThrow(() -> new AppException("Material não encontrado no produto.", Response.Status.BAD_REQUEST));
+  }
 
   public List<ProductionSuggestionDTO.ProductSuggestionDTO> getProductionSuggestions() {
 
@@ -55,6 +60,26 @@ public class ProductionService {
 
     bestPlan.sort((a, b) -> b.value.compareTo(a.value));
     return bestPlan;
+  }
+
+  public List<ProductionSuggestionDTO.ProductSuggestionDTO> getProduction() {
+    List<ProductEntity> products = ProductEntity.listAll();
+    List<RawMaterialEntity> rawMaterials = RawMaterialEntity.listAll();
+
+    List<ProductionSuggestionDTO.ProductSuggestionDTO> suggestions = new ArrayList<>();
+    Map<Long, Integer> originalStock = new HashMap<>();
+    for (RawMaterialEntity rm : rawMaterials) {
+      originalStock.put(rm.id, rm.stockQuantity);
+    }
+
+    for (ProductEntity product : products) {
+      Map<Long, Integer> availableStock = new HashMap<>(originalStock);
+      BigDecimal totalProfit = BigDecimal.ZERO;
+
+      totalProfit = produceProduct(product, availableStock, suggestions, totalProfit);
+
+    }
+    return suggestions;
   }
 
   private BigDecimal produceProduct(

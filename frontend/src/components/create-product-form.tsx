@@ -53,7 +53,7 @@ export function CreateProductForm() {
       ></DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Create Product</DialogTitle>
+          <DialogTitle>Criar Produto.</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 ">
           <div className="flex flex-col gap-1">
@@ -90,7 +90,7 @@ export function CreateProductForm() {
               loading={mutation.isPending}
               className="w-36"
             >
-              Adicionar Produto
+              Adicionar
             </Button>
           </DialogFooter>
         </form>

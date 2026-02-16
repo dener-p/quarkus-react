@@ -13,6 +13,7 @@ import { useState } from "react";
 import {
   Dialog,
   DialogContent,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -22,6 +23,9 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { rawMaterialSchema } from "../lib/schemas";
 import { z } from "zod/v3";
 import { ConfirmationModal } from "./confirmation-modal";
+import { Label } from "./ui/label";
+import { Input } from "./ui/input";
+import type { RawMaterials } from "@/types/apiTypes";
 
 type RawMaterialFormValues = z.infer<typeof rawMaterialSchema>;
 
@@ -71,7 +75,7 @@ export function RawMaterialsTable() {
   );
 }
 
-function EditRawMaterialDialog({ rawMaterial }: { rawMaterial: any }) {
+function EditRawMaterialDialog({ rawMaterial }: { rawMaterial: RawMaterials }) {
   const [open, setOpen] = useState(false);
   const {
     register,
@@ -115,35 +119,23 @@ function EditRawMaterialDialog({ rawMaterial }: { rawMaterial: any }) {
       ></DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Edit Raw Material</DialogTitle>
+          <DialogTitle>Editar {rawMaterial.name}</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-          <div>
-            <label htmlFor="name" className="block text-sm font-medium">
-              Name
-            </label>
-            <input
-              id="name"
-              {...register("name")}
-              className="mt-1 block w-full rounded-md border p-2 bg-transparent"
-            />
+          <div className="flex flex-col gap-2">
+            <Label htmlFor="name">Nome</Label>
+            <Input id="name" {...register("name")} />
             {errors.name && (
               <p className="text-red-500 text-sm">{errors.name.message}</p>
             )}
           </div>
 
-          <div>
-            <label
-              htmlFor="stockQuantity"
-              className="block text-sm font-medium"
-            >
-              Stock Quantity
-            </label>
-            <input
+          <div className="flex flex-col gap-2">
+            <Label htmlFor="stockQuantity">Quantidade em estoque</Label>
+            <Input
               id="stockQuantity"
               type="number"
               {...register("stockQuantity")}
-              className="mt-1 block w-full rounded-md border p-2 bg-transparent"
             />
             {errors.stockQuantity && (
               <p className="text-red-500 text-sm">
@@ -152,13 +144,16 @@ function EditRawMaterialDialog({ rawMaterial }: { rawMaterial: any }) {
             )}
           </div>
 
-          <Button
-            type="submit"
-            disabled={mutation.isPending}
-            className="w-full"
-          >
-            {mutation.isPending ? "Saving..." : "Save Changes"}
-          </Button>
+          <DialogFooter>
+            <Button
+              type="submit"
+              disabled={mutation.isPending}
+              loading={mutation.isPending}
+              className="w-36"
+            >
+              Salvar
+            </Button>
+          </DialogFooter>
         </form>
       </DialogContent>
     </Dialog>
