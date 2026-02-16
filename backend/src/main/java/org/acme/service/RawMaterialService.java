@@ -6,6 +6,7 @@ import org.acme.exception.AppException;
 
 import io.quarkus.panache.common.Sort;
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.transaction.Transactional;
 import jakarta.ws.rs.core.Response;
 import java.util.List;
 
@@ -22,10 +23,12 @@ public class RawMaterialService {
 
   }
 
+  @Transactional
   public void create(RawMaterialEntity rawMaterial) {
     rawMaterial.persist();
   }
 
+  @Transactional
   public RawMaterialEntity update(Long id, RawMaterialEntity rawMaterial) {
     RawMaterialEntity entity = RawMaterialEntity.findById(id);
     if (entity == null) {
@@ -36,6 +39,7 @@ public class RawMaterialService {
     return entity;
   }
 
+  @Transactional
   public void delete(Long id) {
     var association = ProductRawMaterialEntity.find("rawMaterial.id", id).firstResult();
 

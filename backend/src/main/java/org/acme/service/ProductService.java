@@ -14,6 +14,7 @@ import java.util.List;
 import jakarta.ws.rs.core.Response;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+import jakarta.transaction.Transactional;
 
 @ApplicationScoped
 public class ProductService {
@@ -24,6 +25,7 @@ public class ProductService {
   @Inject
   ProductionService productionService;
 
+  @Transactional
   public ProductEntity createProduct(ProductEntity productEntity) {
     ProductEntity.persist(productEntity);
     return productEntity;
@@ -60,6 +62,7 @@ public class ProductService {
         .orElseThrow(() -> new AppException("Produto não encontrado.", Response.Status.BAD_REQUEST));
   }
 
+  @Transactional
   public ProductEntity updateProduct(Long productId, ProductEntity productEntity) {
     var product = findById(productId);
 
@@ -72,6 +75,7 @@ public class ProductService {
 
   }
 
+  @Transactional
   public void deleteProduct(Long productId) {
     var product = findById(productId);
     // cascate = does not need to delete the ProductRawMaterialEntity...
@@ -79,6 +83,7 @@ public class ProductService {
 
   }
 
+  @Transactional
   public void deleteRawMaterialFromProduct(Long id) {
     var deleted = ProductRawMaterialEntity.deleteById(id);
     if (!deleted) {
@@ -86,12 +91,14 @@ public class ProductService {
     }
   }
 
+  @Transactional
   public void updateRawMaterialFromProduct(Long id, ProductionUpdateRawMaterialDTO productionUpdateRawMaterialDTO) {
     var productRawMaterialEntity = productionService.findById(id);
     productRawMaterialEntity.quantity = productionUpdateRawMaterialDTO.quantity;
     productRawMaterialEntity.persist();
   }
 
+  @Transactional
   public void addRawMaterial(Long productId, Long rawMaterialId, Integer quantity) {
     ProductEntity product = findById(productId);
     RawMaterialEntity rawMaterial = rawMaterialService.findById(rawMaterialId);

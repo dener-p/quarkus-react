@@ -3,7 +3,6 @@ package org.acme.controller;
 import org.acme.entity.RawMaterialEntity;
 import org.acme.service.RawMaterialService;
 import jakarta.inject.Inject;
-import jakarta.transaction.Transactional;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
@@ -32,7 +31,6 @@ public class RawMaterialController {
   }
 
   @POST
-  @Transactional
   public Response create(RawMaterialEntity rawMaterial) {
     rawMaterialService.create(rawMaterial);
     Map<String, String> response = new HashMap<>();
@@ -42,14 +40,12 @@ public class RawMaterialController {
 
   @PATCH
   @Path("/{id}")
-  @Transactional
   public RawMaterialEntity update(@PathParam("id") Long id, RawMaterialEntity rawMaterial) {
     return rawMaterialService.update(id, rawMaterial);
   }
 
   @DELETE
   @Path("/{id}")
-  @Transactional
   public Response delete(@PathParam("id") Long id) {
     rawMaterialService.delete(id);
     Map<String, String> response = new HashMap<>();
