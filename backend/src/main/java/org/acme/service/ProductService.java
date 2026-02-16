@@ -8,6 +8,7 @@ import org.acme.entity.ProductRawMaterialEntity;
 import org.acme.entity.RawMaterialEntity;
 import org.acme.exception.AppException;
 
+import io.quarkus.hibernate.orm.panache.Panache;
 import io.quarkus.panache.common.Sort;
 
 import java.util.List;
@@ -85,17 +86,15 @@ public class ProductService {
 
   @Transactional
   public void deleteRawMaterialFromProduct(Long id) {
-    var deleted = ProductRawMaterialEntity.deleteById(id);
-    if (!deleted) {
-      throw new AppException("Não foi possível deletar!", Response.Status.BAD_GATEWAY);
-    }
+    ProductRawMaterialEntity pr = ProductRawMaterialEntity.findById(id);
+    ProductEntity product = pr.product;
+    product.rawMaterials.remove(pr);
   }
 
   @Transactional
   public void updateRawMaterialFromProduct(Long id, ProductionUpdateRawMaterialDTO productionUpdateRawMaterialDTO) {
-    var productRawMaterialEntity = productionService.findById(id);
-    productRawMaterialEntity.quantity = productionUpdateRawMaterialDTO.quantity;
-    productRawMaterialEntity.persist();
+    ProductRawMaterialEntity pr = ProductRawMaterialEntity.findById(id);
+    pr.quantity = productionUpdateRawMaterialDTO.quantity;
   }
 
   @Transactional

@@ -1,5 +1,6 @@
 package org.acme.service;
 
+import io.quarkus.test.TestTransaction;
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
@@ -132,6 +133,7 @@ public class ProductServiceTest {
   }
 
   @Test
+  @TestTransaction
   public void testDeleteRawMaterialFromProduct() {
     ProductEntity product = new ProductEntity();
     product.name = "Table";
@@ -155,6 +157,7 @@ public class ProductServiceTest {
   }
 
   @Test
+  @TestTransaction
   public void testUpdateRawMaterialFromProduct() {
     ProductEntity product = new ProductEntity();
     product.name = "Table";
